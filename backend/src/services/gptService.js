@@ -2,6 +2,8 @@
 const fetch = require('node-fetch');
 const buildPrompt = require('../utils/buildPrompt');
 
+
+
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 async function parseIntent(transcript, userContext = {}) {
