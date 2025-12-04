@@ -1,22 +1,30 @@
 // frontend/src/services/api.js
-// Simple API wrapper to call the backend on Render
 const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
 async function authFetch(path, options = {}, idToken = null) {
   const headers = options.headers ? { ...options.headers } : {};
   if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
+
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers,
   });
+
   const text = await res.text().catch(() => "");
   try { return JSON.parse(text || "{}"); }
   catch { return text; }
 }
 
-export async function sendVoiceCommand(formData, idToken) {
-  // formData should include key "audio"
-  return authFetch("/api/voice-command", { method: "POST", body: formData }, idToken);
+export async function sendTextCommand(text, idToken) {
+  return authFetch(
+    "/api/voice-command",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ transcript: text }),
+    },
+    idToken
+  );
 }
 
 export async function listTasks(idToken) {
@@ -27,4 +35,4 @@ export async function completeTask(taskId, idToken) {
   return authFetch(`/api/tasks/${taskId}/complete`, { method: "POST" }, idToken);
 }
 
-export default { sendVoiceCommand, listTasks, completeTask };
+export default { sendTextCommand, listTasks, completeTask };
