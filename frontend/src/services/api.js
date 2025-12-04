@@ -19,13 +19,14 @@ async function authFetch(path, options = {}, idToken = null) {
   }
 }
 
+// Voice Command — Sends just plain text
 export async function sendVoiceCommand(text, idToken) {
   return authFetch(
     "/api/voice-command",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text }), // SEND ONLY TEXT
     },
     idToken
   );

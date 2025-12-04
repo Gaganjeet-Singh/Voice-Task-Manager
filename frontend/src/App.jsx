@@ -1,5 +1,4 @@
 // frontend/src/App.jsx
-
 import React, { useEffect, useState } from "react";
 import { auth, signInWithGooglePopup } from "./firebase";
 import BrowserVoiceRecorder from "./components/BrowserVoiceRecorder";
@@ -21,12 +20,7 @@ export default function App() {
   }, []);
 
   async function login() {
-    try {
-      await signInWithGooglePopup();
-    } catch (err) {
-      console.error(err);
-      alert("Login failed");
-    }
+    await signInWithGooglePopup();
   }
 
   async function logout() {
@@ -37,23 +31,16 @@ export default function App() {
   async function loadTasks(userObj = user) {
     if (!userObj) return;
     const token = await getIdToken(userObj);
-
     const res = await listTasks(token);
-    if (Array.isArray(res)) setTasks(res);
-    else if (res?.tasks) setTasks(res.tasks);
+    setTasks(Array.isArray(res) ? res : res.tasks || []);
   }
 
   async function onVoiceResult(result) {
-    if (!result?.text) return;
-
-    const u = auth.currentUser;
-    if (!u) return;
-
-    const token = await getIdToken(u);
+    if (!result.text) return;
+    const token = await getIdToken(auth.currentUser);
     const res = await sendVoiceCommand(result.text, token);
-
     setLastResult(res);
-    loadTasks(u);
+    loadTasks(auth.currentUser);
   }
 
   async function onComplete(taskId) {
@@ -63,55 +50,47 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: 20, fontFamily: "system-ui, sans-serif" }}>
-      <h2>Voice-Powered Task Manager (Demo)</h2>
+    <div style={{ padding: 20 }}>
+      <h2>🎤 Voice Task Manager</h2>
 
       {!user ? (
         <>
-          <p>Please sign in to use voice commands.</p>
+          <p>Please sign in:</p>
           <button onClick={login}>Sign in with Google</button>
         </>
       ) : (
         <>
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <div>
-              Signed in as <strong>{user.displayName || user.email}</strong>
-            </div>
-            <button onClick={logout}>Sign out</button>
-          </div>
+          <p>👤 {user.displayName || user.email}</p>
+          <button onClick={logout}>Logout</button>
 
           <BrowserVoiceRecorder onResult={onVoiceResult} />
 
-          <div style={{ marginTop: 12 }}>
-            <h3>Last action result</h3>
-            <pre style={{ background: "#f0f0f0", padding: 8 }}>
-              {JSON.stringify(lastResult, null, 2)}
-            </pre>
-          </div>
+          <h3>Last Action</h3>
+          <pre style={{ background: "#eee", padding: 10 }}>
+            {JSON.stringify(lastResult, null, 2)}
+          </pre>
 
-          <div style={{ marginTop: 12 }}>
-            <h3>Your tasks</h3>
-            <button onClick={() => loadTasks()}>Refresh</button>
+          <h3>Your Tasks</h3>
+          <button onClick={() => loadTasks()}>🔄 Refresh</button>
 
-            <ul>
-              {tasks.length === 0 && <li>No tasks yet</li>}
-              {tasks.map((t) => (
-                <li key={t.id} style={{ margin: "8px 0" }}>
-                  <strong>{t.title || "Untitled"}</strong>
-
-                  <div style={{ marginTop: 6 }}>
-                    {!t.completed ? (
-                      <button onClick={() => onComplete(t.id)}>
-                        Complete
-                      </button>
-                    ) : (
-                      <span>✅ Completed</span>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <ul>
+            {tasks.length === 0 && <li>No tasks yet</li>}
+            {tasks.map((t) => (
+              <li key={t.id} style={{ marginTop: 10 }}>
+                {t.title}
+                {!t.completed ? (
+                  <button
+                    onClick={() => onComplete(t.id)}
+                    style={{ marginLeft: 12 }}
+                  >
+                    Complete
+                  </button>
+                ) : (
+                  " ✅"
+                )}
+              </li>
+            ))}
+          </ul>
         </>
       )}
     </div>

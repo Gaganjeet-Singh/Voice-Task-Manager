@@ -1,5 +1,4 @@
 // frontend/src/components/BrowserVoiceRecorder.jsx
-
 import React, { useState, useEffect } from "react";
 import { sendVoiceCommand } from "../services/api";
 import { getIdToken } from "firebase/auth";
@@ -10,26 +9,30 @@ export default function BrowserVoiceRecorder({ onResult }) {
   const [listening, setListening] = useState(false);
 
   useEffect(() => {
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRec =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
     if (!SpeechRec) {
-      alert("Speech Recognition not supported in this browser");
+      alert("Speech Recognition not supported!");
       return;
     }
 
     const rec = new SpeechRec();
-    rec.continuous = false;
-    rec.interimResults = false;
     rec.lang = "en-US";
+    rec.interimResults = false;
+    rec.continuous = false;
 
     rec.onresult = async (event) => {
       const transcript = event.results[0][0].transcript;
+      console.log("Speech:", transcript);
       onResult({ text: transcript });
 
       const token = await getIdToken(auth.currentUser);
       await sendVoiceCommand(transcript, token);
     };
 
-    rec.onerror = (err) => console.error("Speech recognition error", err);
+    rec.onerror = (err) => console.error("Speech error:", err);
+
     setRecognition(rec);
   }, []);
 
@@ -44,9 +47,11 @@ export default function BrowserVoiceRecorder({ onResult }) {
   };
 
   return (
-    <div>
-      <button onClick={start} disabled={listening}>🎙 Start</button>
-      <button onClick={stop} disabled={!listening}>Stop</button>
+    <div style={{ marginTop: "12px" }}>
+      <button onClick={start} disabled={listening}>🎤 Start</button>
+      <button onClick={stop} disabled={!listening} style={{ marginLeft: "8px" }}>
+        Stop
+      </button>
     </div>
   );
 }
