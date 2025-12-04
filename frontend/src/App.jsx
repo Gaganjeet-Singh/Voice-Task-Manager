@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { auth, signInWithGooglePopup } from "./firebase";
 import BrowserVoiceRecorder from "./components/BrowserVoiceRecorder";
 import { getIdToken, signOut, onAuthStateChanged } from "firebase/auth";
-import { sendTextCommand, listTasks, completeTask } from "./services/api";
+import { sendVoiceCommand, listTasks, completeTask } from "./services/api";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -48,7 +48,7 @@ export default function App() {
     const u = auth.currentUser;
     const token = await getIdToken(u);
 
-    const res = await sendTextCommand(result.text, token);
+    const res = await sendVoiceCommand(result.text, token);
     setLastResult(res);
     loadTasks(u);
   }
