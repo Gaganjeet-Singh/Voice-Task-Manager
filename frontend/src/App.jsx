@@ -1,4 +1,5 @@
 // frontend/src/App.jsx
+
 import React, { useEffect, useState } from "react";
 import { auth, signInWithGooglePopup } from "./firebase";
 import BrowserVoiceRecorder from "./components/BrowserVoiceRecorder";
@@ -36,8 +37,8 @@ export default function App() {
   async function loadTasks(userObj = user) {
     if (!userObj) return;
     const token = await getIdToken(userObj);
-    const res = await listTasks(token);
 
+    const res = await listTasks(token);
     if (Array.isArray(res)) setTasks(res);
     else if (res?.tasks) setTasks(res.tasks);
   }
@@ -46,9 +47,11 @@ export default function App() {
     if (!result?.text) return;
 
     const u = auth.currentUser;
-    const token = await getIdToken(u);
+    if (!u) return;
 
+    const token = await getIdToken(u);
     const res = await sendVoiceCommand(result.text, token);
+
     setLastResult(res);
     loadTasks(u);
   }
@@ -95,9 +98,12 @@ export default function App() {
               {tasks.map((t) => (
                 <li key={t.id} style={{ margin: "8px 0" }}>
                   <strong>{t.title || "Untitled"}</strong>
+
                   <div style={{ marginTop: 6 }}>
                     {!t.completed ? (
-                      <button onClick={() => onComplete(t.id)}>Complete</button>
+                      <button onClick={() => onComplete(t.id)}>
+                        Complete
+                      </button>
                     ) : (
                       <span>✅ Completed</span>
                     )}

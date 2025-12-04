@@ -12,8 +12,11 @@ async function authFetch(path, options = {}, idToken = null) {
   });
 
   const text = await res.text().catch(() => "");
-  try { return JSON.parse(text || "{}"); }
-  catch { return text; }
+  try {
+    return JSON.parse(text || "{}");
+  } catch {
+    return text;
+  }
 }
 
 export async function sendVoiceCommand(text, idToken) {
@@ -22,7 +25,7 @@ export async function sendVoiceCommand(text, idToken) {
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }), // <-- FIXED
+      body: JSON.stringify({ text }),
     },
     idToken
   );
