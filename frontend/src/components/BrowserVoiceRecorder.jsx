@@ -1,5 +1,8 @@
-// e.g. src/components/BrowserVoiceRecorder.jsx
+// frontend/src/components/BrowserVoiceRecorder.jsx
 import React, { useState, useEffect } from "react";
+import { sendVoiceCommand } from "../services/api";
+import { getIdToken } from "firebase/auth";
+import { auth } from "../firebase";
 
 export default function BrowserVoiceRecorder({ onResult }) {
   const [recognition, setRecognition] = useState(null);
@@ -8,41 +11,40 @@ export default function BrowserVoiceRecorder({ onResult }) {
   useEffect(() => {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRec) {
-      alert("Sorry — your browser does not support speech recognition");
+      alert("Speech Recognition not supported in this browser");
       return;
     }
+
     const rec = new SpeechRec();
-    rec.continuous = false; // or true if you like
+    rec.continuous = false;
     rec.interimResults = false;
     rec.lang = "en-US";
 
-    rec.onresult = (event) => {
+    rec.onresult = async (event) => {
       const transcript = event.results[0][0].transcript;
       onResult({ text: transcript });
+
+      const token = await getIdToken(auth.currentUser);
+      await sendVoiceCommand(transcript, token);
     };
-    rec.onerror = (e) => {
-      console.error("Speech recognition error", e);
-    };
+
+    rec.onerror = (err) => console.error("Speech error", err);
     setRecognition(rec);
   }, []);
 
   const start = () => {
-    if (recognition && !listening) {
-      recognition.start();
-      setListening(true);
-    }
+    recognition?.start();
+    setListening(true);
   };
 
   const stop = () => {
-    if (recognition && listening) {
-      recognition.stop();
-      setListening(false);
-    }
+    recognition?.stop();
+    setListening(false);
   };
 
   return (
     <div>
-      <button onClick={start} disabled={listening}>🎙️ Start</button>
+      <button onClick={start} disabled={listening}>🎙 Start</button>
       <button onClick={stop} disabled={!listening}>Stop</button>
     </div>
   );

@@ -14,7 +14,7 @@ async function handleVoiceCommand(req, res) {
     const lower = text.toLowerCase();
     const tasksCol = db.collection("users").doc(uid).collection("tasks");
 
-    // Simple NLP logic
+    // === CREATE TASK ===
     if (lower.includes("add task") || lower.includes("create task")) {
       const title = lower
         .replace("add task", "")
@@ -33,6 +33,48 @@ async function handleVoiceCommand(req, res) {
         action: "task-created",
         taskId: newTask.id,
         title: doc.title,
+      });
+    }
+
+    // === LIST TASKS ===
+    if (
+      lower.includes("list") ||
+      lower.includes("show tasks") ||
+      lower.includes("my tasks")
+    ) {
+      const snapshot = await tasksCol.orderBy("createdAt", "desc").get();
+      const tasks = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+      return res.json({
+        action: "tasks-list",
+        count: tasks.length,
+        tasks,
+      });
+    }
+
+    // === COMPLETE TASK (first incomplete) ===
+    if (lower.includes("complete task") || lower.includes("done")) {
+      const incomplete = await tasksCol
+        .where("completed", "==", false)
+        .limit(1)
+        .get();
+
+      if (!incomplete.empty) {
+        const doc = incomplete.docs[0];
+        await tasksCol.doc(doc.id).update({
+          completed: true,
+          completedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        return res.json({
+          action: "task-completed",
+          taskId: doc.id,
+        });
+      }
+
+      return res.json({
+        action: "no-tasks",
+        message: "No pending tasks to complete",
       });
     }
 
@@ -85,7 +127,7 @@ async function completeTask(req, res) {
         completedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-    return res.json({ success: true });
+    return res.json({ success: true, taskId });
   } catch (err) {
     console.error("completeTask error", err);
     return res.status(500).json({ error: err.message });
