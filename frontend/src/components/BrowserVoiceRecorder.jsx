@@ -1,4 +1,5 @@
 // frontend/src/components/BrowserVoiceRecorder.jsx
+
 import React, { useState, useEffect } from "react";
 import { sendVoiceCommand } from "../services/api";
 import { getIdToken } from "firebase/auth";
@@ -28,7 +29,7 @@ export default function BrowserVoiceRecorder({ onResult }) {
       await sendVoiceCommand(transcript, token);
     };
 
-    rec.onerror = (err) => console.error("Speech error", err);
+    rec.onerror = (err) => console.error("Speech recognition error", err);
     setRecognition(rec);
   }, []);
 

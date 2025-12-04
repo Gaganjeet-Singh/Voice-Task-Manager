@@ -1,10 +1,12 @@
+// backend/src/routes/voiceRoutes.js
 const express = require("express");
 const router = express.Router();
-const { handleVoiceCommand, listTasks, completeTask } = require("../controllers/voiceController");
+const voiceController = require("../controllers/voiceController");
 const authMiddleware = require("../middlewares/authMiddleware");
 
-router.post("/voice-command", authMiddleware, express.json(), handleVoiceCommand);
-router.get("/tasks", authMiddleware, listTasks);
-router.post("/tasks/:id/complete", authMiddleware, completeTask);
+// JSON text only now
+router.post("/voice-command", authMiddleware, voiceController.handleVoiceCommand);
+router.get("/tasks", authMiddleware, voiceController.listTasks);
+router.post("/tasks/:id/complete", authMiddleware, voiceController.completeTask);
 
 module.exports = router;

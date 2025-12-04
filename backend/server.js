@@ -1,29 +1,22 @@
-// backend/server.js
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const admin = require('firebase-admin');
-const path = require('path');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const admin = require("firebase-admin");
 
-// Initialize Firebase Admin using Render environment variables
-const firebaseProjectId = process.env.FIREBASE_PROJECT_ID;
-const firebaseClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-let firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY;
-
-// Render may store multiline keys correctly, but sometimes keys contain escaped \n characters.
-// Replace literal "\n" sequences with actual newlines to be safe.
-if (firebasePrivateKey && firebasePrivateKey.indexOf('\\n') !== -1) {
-  firebasePrivateKey = firebasePrivateKey.replace(/\\n/g, '\n');
+// Fix private key formatting for Render environment
+let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+if (privateKey?.includes("\\n")) {
+  privateKey = privateKey.replace(/\\n/g, "\n");
 }
 
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
-      projectId: firebaseProjectId,
-      clientEmail: firebaseClientEmail,
-      privateKey: firebasePrivateKey,
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: privateKey,
     }),
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`,
   });
 }
 
@@ -31,18 +24,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Mount routes
-const voiceRoutes = require('./src/routes/voiceRoutes');
-app.use('/api', voiceRoutes);
+// Routes
+const voiceRoutes = require("./src/routes/voiceRoutes");
+app.use("/api", voiceRoutes);
 
-// Health check
-app.get('/', (req, res) => res.send('Backend deployed successfully!'));
+app.get("/", (_, res) => res.send("Backend running 😎"));
 
-// Error handler (simple)
+// Global error logging
 app.use((err, req, res, next) => {
-  console.error('Unhandled error', err);
-  res.status(500).json({ error: err.message || 'Server error' });
+  console.error("Unhandled backend error:", err);
+  res.status(500).json({ error: err.message });
 });
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Backend live on ${PORT}`));
