@@ -1,26 +1,25 @@
-// frontend/src/firebase.js
-// Firebase v9 modular SDK setup
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { getFirestore, serverTimestamp } from "firebase/firestore";
+import {
+  GoogleAuthProvider,
+  getAuth,
+  signInWithPopup,
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  authDomain: "voice-task-manager-25dcd.firebaseapp.com",
+  projectId: "voice-task-manager-25dcd",
+  storageBucket: "voice-task-manager-25dcd.appspot.com",
+  messagingSenderId: "1027904874791",
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Initialize
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+export const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-async function signInWithGooglePopup() {
+export function signInWithGooglePopup() {
   return signInWithPopup(auth, provider);
 }
 
-export { app, auth, db, provider, signInWithGooglePopup, serverTimestamp };
+export default app;
