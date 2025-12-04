@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { auth, signInWithGooglePopup } from "./firebase";
 import BrowserVoiceRecorder from "./components/BrowserVoiceRecorder";
 import { getIdToken, signOut, onAuthStateChanged } from "firebase/auth";
-import { sendTextCommand, listTasks, completeTask } from "./services/api";
+import { sendVoiceCommand, listTasks, completeTask } from "./services/api";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -48,7 +48,7 @@ export default function App() {
     const u = auth.currentUser;
     const token = await getIdToken(u);
 
-    const res = await sendTextCommand(result.text, token);
+    const res = await sendVoiceCommand(result.text, token);
     setLastResult(res);
     loadTasks(u);
   }
@@ -93,24 +93,14 @@ export default function App() {
             <ul>
               {tasks.length === 0 && <li>No tasks yet</li>}
               {tasks.map((t) => (
-                <li key={t.id || t.taskId || t._id} style={{ margin: "8px 0" }}>
+                <li key={t.id} style={{ margin: "8px 0" }}>
                   <strong>{t.title || "Untitled"}</strong>
-                  {t.dueAt && (
-                    <span> — due {new Date(t.dueAt).toLocaleString()}</span>
-                  )}
-                  <div>{t.description || ""}</div>
-
                   <div style={{ marginTop: 6 }}>
-                    {!t.completed && (
-                      <button
-                        onClick={() =>
-                          onComplete(t.id || t.taskId || t._id)
-                        }
-                      >
-                        Complete
-                      </button>
+                    {!t.completed ? (
+                      <button onClick={() => onComplete(t.id)}>Complete</button>
+                    ) : (
+                      <span>✅ Completed</span>
                     )}
-                    {t.completed && <span>✅ Completed</span>}
                   </div>
                 </li>
               ))}
