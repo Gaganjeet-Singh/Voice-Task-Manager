@@ -1,5 +1,6 @@
 // backend/src/services/whisperService.js
-const fetch = require('node-fetch');
+const fetch = (...args) =>
+  import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const FormData = require('form-data');
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -9,24 +10,23 @@ async function transcribeAudioBuffer(buffer, filename = 'audio.webm', mimeType =
 
   const form = new FormData();
   form.append('file', buffer, { filename, contentType: mimeType });
-  form.append('model', 'whisper-1'); // adjust if model name changes
+  form.append('model', 'whisper-1');
 
-  const resp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-    method: 'POST',
+  const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST",
     headers: {
       Authorization: `Bearer ${OPENAI_API_KEY}`,
-      // Note: fetch + form-data manages Content-Type (boundary)
     },
     body: form,
   });
 
-  if (!resp.ok) {
-    const txt = await resp.text();
-    throw new Error(`Whisper API error: ${resp.status} ${txt}`);
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`Whisper error ${response.status}: ${text}`);
   }
-  const data = await resp.json();
-  // OpenAI transcription response usually has `text` field
-  return data.text || data;
+
+  const result = JSON.parse(text);
+  return result.text;
 }
 
 module.exports = { transcribeAudioBuffer };
